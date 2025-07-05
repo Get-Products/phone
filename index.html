@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop</title>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /*
+      Здесь можно менять основные цвета сайта:
+      - Header: класс bg-gray-200 (светлосерый) и z-index через класс z-50
+      - Кнопка Get Products: класс bg-purple-600 и hover:bg-purple-700
+      - Модальное окно: градиент from-green-400 to-blue-500
+      - Фон страницы: класс bg-gray-100
+      - Цвета текста: text-gray-800, text-gray-600 и т.д.
+      Для изменения просто замените эти классы на нужные Tailwind цвета или добавьте свои в tailwind.config.js
+    */
+    body {
+      max-width: 390px;
+      margin: auto;
+      padding-top: 4rem; /* Отступ сверху под фиксированный хедер */
+    }
+    .checkmark {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: block;
+      stroke-width: 2;
+      stroke: #fff;
+      stroke-miterlimit: 10;
+      box-shadow: inset 0px 0px 0px #4caf50;
+      animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+    .checkmark__circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      stroke-width: 2;
+      stroke-miterlimit: 10;
+      stroke: #4caf50;
+      fill: none;
+      animation: stroke .6s cubic-bezier(.65,.05,.36,1) forwards;
+    }
+    .checkmark__check {
+      transform-origin: 50% 50%;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: stroke .3s cubic-bezier(.65,.05,.36,1) .6s forwards;
+    }
+    @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+    @keyframes scale { 0%,100% { transform: none; } 50% { transform: scale3d(1.1,1.1,1); } }
+    @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 30px #4caf50; } }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 flex items-center justify-between p-4 bg-gray-200 shadow-lg z-50">
+    <button id="burger" class="p-2 text-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <h1 class="text-xl font-bold text-gray-800">Get Phone</h1>
+    <button id="cart-btn" class="relative p-2 text-gray-800">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.2 6m1.2-6L5.4 5M17 13l1.2 6m-1.2-6L18.6 5" />
+      </svg>
+      <span id="cart-count" class="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs px-1">0</span>
+    </button>
+  </header>
+
+  <!-- Main content -->
+  <main id="products-view" class="p-4 grid grid-cols-2 gap-4">
+    <!-- Статические карточки теперь можно редактировать вручную -->
+    <!-- Пример одной карточки: -->
+    <!--
+    <div class="bg-white rounded-xl shadow-lg p-3 flex flex-col">
+      <img src="path/to/local/image1.jpg" alt="Название товара" class="rounded-lg mb-2 object-cover h-32 w-full" />
+      <div class="flex items-center justify-between">
+        <h3 class="font-medium text-base text-gray-800">Название товара</h3>
+        <button class="add-cart focus:outline-none text-green-600 hover:text-green-800">
+        иконка корзины -->
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Cart page -->
+  <section id="cart-view" class="hidden p-4">
+    <h2 class="text-2xl font-semibold text-blue-800 mb-4">Cart</h2>
+    <div id="cart-items" class="space-y-4"></div>
+    <button id="get-products" class="mt-6 w-full py-3 bg-purple-600 text-white rounded-lg text-lg shadow-md hover:bg-purple-700 transition">Get Phone</button>
+  </section>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-xl text-center space-y-4">
+      <div class="flex justify-center">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14 27l7 7 16-16"/>
+        </svg>
+      </div>
+      <p class="text-lg font-medium">Your phone are on the way</p>
+      <button id="close-modal" class="mt-4 px-4 py-2 bg-white text-gray-800 rounded-lg shadow hover:bg-gray-100 transition">Get more</button>
+    </div>
+  </div>
+
+  <script>
+    // Настройка товаров: замените name и img на свои значения и локальные пути к изображениям
+    const products = [
+      { id: 1, name: 'Jordan 1 Low', img: '1.jpg' },
+      { id: 2, name: 'Arab Gucci Bag', img: '2.jpg' },
+      { id: 3, name: 'Stone island hoodie', img: '3.jpg' },
+      { id: 4, name: 'Stone island sweeter', img: '4.jpg' },
+      { id: 5, name: 'Tears hoodie', img: '5.jpg' },
+      { id: 6, name: 'Burberry', img: '6.jpg' },
+      { id: 7, name: 'CDG Hoodie', img: '7.jpg' },
+      { id: 8, name: 'BAPE Zip', img: '8.jpg' },
+
+
+
+      // добавьте остальные товары вручную
+    ];
+    const cart = new Set();
+
+    const productsView = document.getElementById('products-view');
+    const cartView = document.getElementById('cart-view');
+    const cartCount = document.getElementById('cart-count');
+
+    function renderProducts() {
+      productsView.innerHTML = '';
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-xl shadow-lg p-3 flex flex-col';
+        card.id = `prod-${p.id}`;
+        card.innerHTML = `
+          <img src="${p.img}" alt="${p.name}" class="rounded-lg mb-2 object-cover h-42 w-full" />
+          <div class="flex items-center justify-between">
+            <h3 class="font-medium text-base text-gray-800">${p.name}</h3>
+            <button class="add-cart focus:outline-none text-green-600 hover:text-green-800">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.2 6m1.2-6L5.4 5M17 13l1.2 6m-1.2-6L18.6 5" />
+              </svg>
+            </button>
+          </div>`;
+        const btn = card.querySelector('.add-cart');
+        btn.addEventListener('click', () => {
+          if (cart.has(p.id)) {
+            cart.delete(p.id);
+            card.classList.remove('border-4', 'border-green-500');
+          } else {
+            cart.add(p.id);
+            card.classList.add('border-4', 'border-green-500');
+          }
+          cartCount.textContent = cart.size;
+        });
+        productsView.appendChild(card);
+      });
+    }
+
+    document.getElementById('cart-btn').addEventListener('click', () => {
+      productsView.classList.add('hidden');
+      cartView.classList.remove('hidden');
+      renderCart();
+    });
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      container.innerHTML = '';
+      cart.forEach(id => {
+        const p = products.find(x => x.id === id);
+        const el = document.createElement('div');
+          el.className = 'flex items-center bg-white rounded-2xl shadow-xl p-4 space-x-4';
+        el.innerHTML = `
+          <img src="${p.img}" class="h-20 w-20 rounded-lg object-cover"/>
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-900 mb-1">${p.name}</h3>
+          </div>`;
+        container.appendChild(el);
+      });
+      if (cart.size === 0) container.innerHTML = '<p class="text-gray-600">В корзине пока пусто</p>';
+    }
+
+    document.getElementById('get-products').addEventListener('click', () => {
+      document.getElementById('modal').classList.remove('hidden');
+      startCountdown(4 * 3600);
+    });
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('modal').classList.add('hidden');
+    });
+
+    function startCountdown(duration) {
+      let timer = duration;
+      const display = document.getElementById('countdown');
+      clearInterval(window._countdownInterval);
+      window._countdownInterval = setInterval(() => {
+        const hrs = Math.floor(timer / 3600);
+        const mins = Math.floor((timer % 3600) / 60);
+        const secs = timer % 60;
+        display.textContent = 
+          String(hrs).padStart(2, '0') + ':' +
+          String(mins).padStart(2, '0') + ':' +
+          String(secs).padStart(2, '0');
+        if (--timer < 0) clearInterval(window._countdownInterval);
+      }, 1000);
+    }
+
+    // Инициализация
+    renderProducts();
+  </script>
+</body>
+</html>
